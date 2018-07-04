@@ -49,6 +49,9 @@ T_sp=T_sp(:,2:4);
 
 % https://personalpages.manchester.ac.uk/staff/david.foster/Tutorial_HSI2RGB/Tutorial_HSI2RGB.html
 
+% Correction (eq 1)
+% E=log(E0) - mean(log(E0))
+
 %% PCA
 %% Stats
 
