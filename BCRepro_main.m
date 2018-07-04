@@ -31,12 +31,13 @@ for i=1:size(daylight_spd,2) %Normalise. Sure there's a more efficient way to do
 end
 
 % Observer(s)
-
 % Smith Pokorny from CVRL
-sp = csvread('C:\Users\cege-user\Dropbox\UCL\Data\Colour standards\CVRL cone fundamentals\sp.csv');
-sp(:,2:4)=(10.^(sp(:,2:4)))./max(10.^(sp(:,2:4))); %Make non-log and normalise
-S_sp=[sp(1,1),sp(2,1)-sp(1,1),length(sp)];
-%plot(sp(:,1),sp(:,2:4))
+T_sp = csvread('C:\Users\cege-user\Dropbox\UCL\Data\Colour standards\CVRL cone fundamentals\sp.csv');
+T_sp(:,2:4)=(10.^(T_sp(:,2:4)))./max(10.^(T_sp(:,2:4))); %Make non-log, and normalise to peak 1
+%Special normalization !!!!!!!!!!!!
+S_sp=[T_sp(1,1),T_sp(2,1)-T_sp(1,1),length(T_sp)];
+T_sp=T_sp(:,2:4);
+%plot(SToWls(S_sp),T_sp)
 
 % Psychtoolbox version
 % % Not using because of curtailment at low and high ends.
@@ -44,8 +45,13 @@ S_sp=[sp(1,1),sp(2,1)-sp(1,1),length(sp)];
 % load T_cones_sp
 % plot(SToWls(S_cones_sp),T_cones_sp,'o')
 
-
-
-%%
+%% Calculate LMSRI for each pixel
 
 % https://personalpages.manchester.ac.uk/staff/david.foster/Tutorial_HSI2RGB/Tutorial_HSI2RGB.html
+
+%% PCA
+%% Stats
+
+
+
+
