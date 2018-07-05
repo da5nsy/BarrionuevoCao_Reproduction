@@ -18,6 +18,7 @@ clc, clear, close all
 % calibration files) to deal with)
 load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
 im = reflectances; clear reflectances
+S_im=[410,10,31];
 
 % Urghhhh, so there's some weird banding artefacts with the images. Not sure
 % what's going on. For now I just crop the zeros out.
@@ -34,7 +35,7 @@ im = im(1:750,:,:);
 % would think that a non-linear interval would make more sense.
 D_CCT=3600:1020:25000; %but including [3940,5205,6677,24770]
 load B_cieday
-daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]);
+daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); %these appear to be linearly upsampled from 10nm intervals
 for i=1:size(daylight_spd,2) %Normalise. Sure there's a more efficient way to do this with matrix division but I am tired.
     daylight_spd(:,i)=daylight_spd(:,i)/max(daylight_spd(:,i));
 end
@@ -70,6 +71,11 @@ load T_melanopsin
 % plot(SToWls(S_rods),T_rods)
 % plot(SToWls(S_melanopsin),T_melanopsin)
 
+% Pull them all together
+
+LMSRI=[T_sp(1:81,:), T_rods',(SplineCmf(S_melanopsin,T_melanopsin,S_rods))'];
+T_LMSRI=T_rods;
+
 %% Funky normalisation
 
 % I don't think this section is required due to a later normalisation, but
@@ -78,20 +84,35 @@ load T_melanopsin
 
 %% Convert to radiance 
 
-% radiances_6500 = zeros(size(reflectances)); % initialize array
-% for i = 1:33
-%   radiances_6500(:,:,i) = reflectances(:,:,i)*illum_6500(i);
+spd=daylight_spd(:,4); % For now I'll just use daylight_spd(:,4) (CCT=6600)
+spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval of Foster images
+
+%figure, hold on, scatter(SToWls(S_cieday),spd)
+%scatter(SToWls(S_im),spd_i);
+
+for i = 1:size(im,3)
+   im_r(:,:,i) = im(:,:,i)*spd_i(i); %image radiance
+end
+
+% for i=1:31
+%     imshow(im_r(:,:,i))
+%     drawnow
+%     pause(0.5)
 % end
 
 %% Calculate LMSRI for each pixel
 
 % https://personalpages.manchester.ac.uk/staff/david.foster/Tutorial_HSI2RGB/Tutorial_HSI2RGB.html
 
+[r,c,w] = size(im_r);
+im_rr = reshape(im_r, r*c, w); %Image radiance reshaped
 
-slice = im(:,:,17);
-figure; imshow(slice); 
-axis square
-% Correction (eq 1)
+LMSRI = reshape(LMSRI, r, c, 3);
+
+LMSRI = max(LMSRI, 0);
+LMSRI = LMSRI/max(LMSRI(:));
+
+%% Correction (eq 1)
 % E=log(E0) - mean(log(E0))
 
 %% PCA
