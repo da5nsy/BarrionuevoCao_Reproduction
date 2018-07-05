@@ -8,6 +8,10 @@
 % Journal of the Optical Society of America A, vol. 31, no. 4,
 % p. A131, Apr. 2014.
 
+% Requires:
+% Psychtoolbox (could probs be done without, but it makes it easy)
+% Version: 3.0.14 - Flavor: beta - Corresponds to SVN Revision 8424
+
 % TO DO list
 % - Second level pca
 % - pca not including rods/melanopsin
