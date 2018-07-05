@@ -1,9 +1,11 @@
+% -WORK IN PROGRESS-
+%
 % Code to reproduce analysis from:
 %
-% P. A. Barrionuevo and D. Cao, 
-% “Contributions of rhodopsin, cone opsins, and melanopsin to 
-% postreceptoral pathways inferred from natural image statistics,” 
-% Journal of the Optical Society of America A, vol. 31, no. 4, 
+% P. A. Barrionuevo and D. Cao,
+% “Contributions of rhodopsin, cone opsins, and melanopsin to
+% postreceptoral pathways inferred from natural image statistics,”
+% Journal of the Optical Society of America A, vol. 31, no. 4,
 % p. A131, Apr. 2014.
 
 %%
@@ -31,7 +33,7 @@ im = im(1:750,:,:);
 
 % Illuminants
 % 21 D ills 3600:25000, no mention of interval so assuming the interval
-% which gives 21, though an interval of 1020 is weird, and I personally 
+% which gives 21, though an interval of 1020 is weird, and I personally
 % would think that a non-linear interval would make more sense.
 D_CCT=3600:1020:25000; %but including [3940,5205,6677,24770]
 load B_cieday
@@ -64,7 +66,7 @@ load T_rods
 % peak at 484. (PsychT = 488nm, Lucas = 490nm)
 % And so for simplicity, for now, I'll use psychtoolbox, but remember that
 % if the results come out slightly diff, this could be a contributor.
-load T_melanopsin 
+load T_melanopsin
 
 % figure, hold on
 % plot(SToWls(S_sp),T_sp)
@@ -86,7 +88,7 @@ S_LMSRI=S_im;
 % I'll put this here just in case I'm wrong so that it's here to come back
 % to if I need to.
 
-%% Convert to radiance 
+%% Convert to radiance
 
 spd=daylight_spd(:,4); % For now I'll just use daylight_spd(:,4) (CCT=6600)
 spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval of Foster images
@@ -95,7 +97,7 @@ spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval o
 %scatter(SToWls(S_im),spd_i);
 
 for i = 1:size(im,3)
-   im_r(:,:,i) = im(:,:,i)*spd_i(i); %image radiance
+    im_r(:,:,i) = im(:,:,i)*spd_i(i); %image radiance
 end
 
 % for i=1:31
@@ -113,15 +115,70 @@ im_rr = reshape(im_r, r*c, w); %Image radiance reshaped
 
 im_LMSRI = (T_LMSRI*im_rr')';
 
-im_LMSRI = reshape(im_LMSRI, r, c, 5);
+im_LMSRI_shape = reshape(im_LMSRI, r, c, 5);
 
 im_LMSRI = max(im_LMSRI, 0);
 im_LMSRI = im_LMSRI/max(im_LMSRI(:));
 
 %% Correction (eq 1)
-% E=log(E0) - mean(log(E0))
+
+plt_process     = 0;
+plt_correction  = 0;
+
+if plt_process
+    
+    figure,
+    for i=1:5
+        subplot(3,5,i)
+        hist(im_LMSRI(:,i),500)
+        xlim([0 1])
+        ylim([0 25000])
+        if i==1
+            ylabel('raw values')
+        end
+    end
+    
+    for i=1:5
+        subplot(3,5,5+i)
+        hist(log(im_LMSRI(:,i)),500)
+        xlim([-5 0])
+        ylim([0 6000])
+        if i==1
+            ylabel('log')
+        end
+    end
+    
+    for i=1:5
+        subplot(3,5,10+i)
+        hist(log(im_LMSRI(:,i))-mean(log(im_LMSRI(:,i))),500)
+        xlim([-3 3])
+        ylim([0 6000])
+        if i==1
+            ylabel('log -mean(log)')
+        end
+        hold on
+        plot([0,0],ylim,'k')
+    end
+    
+end
+
+im_LMSRI_c = log(im_LMSRI)-mean(log(im_LMSRI)); %'c' = 'corrected'
+
+if plt_correction
+    figure,
+    hist(im_LMSRI_c,50)
+    xlim([-(max(xlim)) max(xlim)]) %smmetrical x-axis
+    legend({'L','M','S','R','I'})
+end
 
 %% PCA
+
+[P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_LMSRI_c);
+
+% figure,
+% for i=1:5
+% plot(P_coeff(:,i)*P_explained(i))
+% end
 %% Stats
 
 
