@@ -46,7 +46,7 @@ end
 T_sp = csvread('C:\Users\cege-user\Dropbox\UCL\Data\Colour standards\CVRL cone fundamentals\sp.csv');
 T_sp(:,2:4)=(10.^(T_sp(:,2:4)))./max(10.^(T_sp(:,2:4))); %Make non-log, and normalise to peak 1
 S_sp=[T_sp(1,1),T_sp(2,1)-T_sp(1,1),length(T_sp)]; %Get wavlength range, and put in psychtoolbox format
-T_sp=T_sp(:,2:4); %Remove wavelength range
+T_sp=T_sp(:,2:4)'; %Remove wavelength range
 %plot(SToWls(S_sp),T_sp)
 
 % Psychtoolbox version
@@ -72,9 +72,13 @@ load T_melanopsin
 % plot(SToWls(S_melanopsin),T_melanopsin)
 
 % Pull them all together
+T_LMSRI=[(SplineCmf(S_sp,T_sp,S_im));...
+    (SplineCmf(S_rods,T_rods,S_im));...
+    (SplineCmf(S_melanopsin,T_melanopsin,S_im))];
 
-LMSRI=[T_sp(1:81,:), T_rods',(SplineCmf(S_melanopsin,T_melanopsin,S_rods))'];
-T_LMSRI=T_rods;
+S_LMSRI=S_im;
+
+% figure, plot(SToWls(S_LMSRI),T_LMSRI)
 
 %% Funky normalisation
 
@@ -107,10 +111,12 @@ end
 [r,c,w] = size(im_r);
 im_rr = reshape(im_r, r*c, w); %Image radiance reshaped
 
-LMSRI = reshape(LMSRI, r, c, 3);
+im_LMSRI = (T_LMSRI*im_rr')';
 
-LMSRI = max(LMSRI, 0);
-LMSRI = LMSRI/max(LMSRI(:));
+im_LMSRI = reshape(im_LMSRI, r, c, 5);
+
+im_LMSRI = max(im_LMSRI, 0);
+im_LMSRI = im_LMSRI/max(im_LMSRI(:));
 
 %% Correction (eq 1)
 % E=log(E0) - mean(log(E0))
