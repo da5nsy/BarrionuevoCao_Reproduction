@@ -8,6 +8,15 @@
 % Journal of the Optical Society of America A, vol. 31, no. 4,
 % p. A131, Apr. 2014.
 
+% TO DO list
+% - Second level pca
+% - pca not including rods/melanopsin
+% - Do I need to do that initial normalisation?
+% - Multiple light sources
+% - Multiple images
+% - Think more about whether the sign inverted row is actually important?
+% (Can you just sign invert and it means nothing?)
+
 %%
 clc, clear, close all
 
@@ -173,12 +182,34 @@ end
 
 %% PCA
 
+%clc
+
 [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_LMSRI_c);
 
-% figure,
-% for i=1:5
-% plot(P_coeff(:,i)*P_explained(i))
-% end
+% format bank
+% P_coeff'
+% format
+
+% Compare with table 5 of original pub
+% It looks as though the third component might have the wrong signs, hmmm
+% otherwise everything else matches fairly well
+
+% from pub, for comparison
+table5 = [0.49, 0.48, 0.38, 0.45, 0.43;...
+    -0.40 -0.38, 0.80, -0.04, 0.20;...
+    0.59, -0.08, 0.39, -0.48, -0.48;...
+    -0.45, 0.64 0.21, 0.15, -0.54;...
+    0.18, -0.45, 0.03, 0.73, -0.48];
+
+% format bank
+% P_coeff'-table5
+% format
+
+figure
+imshow(abs(P_coeff'-table5),'InitialMagnification', 8000)
+
+%% Second level
+
 %% Stats
 
 
