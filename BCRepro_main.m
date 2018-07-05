@@ -16,8 +16,17 @@ clc, clear, close all
 % (original ref uses 9 images)
 % chosen this one since the first set has less sidecar (presumably
 % calibration files) to deal with)
-load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene1.mat')
+load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
 im = reflectances; clear reflectances
+
+% Urghhhh, so there's some weird banding artefacts with the images. Not sure
+% what's going on. For now I just crop the zeros out.
+im = im(1:750,:,:);
+% for i=1:31
+%     imshow(im(:,:,i))
+%     drawnow
+%     pause(0.5)
+% end
 
 % Illuminants
 % 21 D ills 3600:25000, no mention of interval so assuming the interval
@@ -35,7 +44,6 @@ end
 % Smith-Pokorny from CVRL
 T_sp = csvread('C:\Users\cege-user\Dropbox\UCL\Data\Colour standards\CVRL cone fundamentals\sp.csv');
 T_sp(:,2:4)=(10.^(T_sp(:,2:4)))./max(10.^(T_sp(:,2:4))); %Make non-log, and normalise to peak 1
-%Special normalization !!!!!!!!!!!!
 S_sp=[T_sp(1,1),T_sp(2,1)-T_sp(1,1),length(T_sp)]; %Get wavlength range, and put in psychtoolbox format
 T_sp=T_sp(:,2:4); %Remove wavelength range
 %plot(SToWls(S_sp),T_sp)
@@ -62,10 +70,27 @@ load T_melanopsin
 % plot(SToWls(S_rods),T_rods)
 % plot(SToWls(S_melanopsin),T_melanopsin)
 
+%% Funky normalisation
+
+% I don't think this section is required due to a later normalisation, but
+% I'll put this here just in case I'm wrong so that it's here to come back
+% to if I need to.
+
+%% Convert to radiance 
+
+% radiances_6500 = zeros(size(reflectances)); % initialize array
+% for i = 1:33
+%   radiances_6500(:,:,i) = reflectances(:,:,i)*illum_6500(i);
+% end
+
 %% Calculate LMSRI for each pixel
 
 % https://personalpages.manchester.ac.uk/staff/david.foster/Tutorial_HSI2RGB/Tutorial_HSI2RGB.html
 
+
+slice = im(:,:,17);
+figure; imshow(slice); 
+axis square
 % Correction (eq 1)
 % E=log(E0) - mean(log(E0))
 
