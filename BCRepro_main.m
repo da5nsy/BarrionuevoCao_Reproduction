@@ -20,9 +20,13 @@
 % - Multiple images
 % - Think more about whether the sign inverted row is actually important?
 % (Can you just sign invert and it means nothing?)
+% - Find a way to programmatically crop out the zeros 
+% (re-download data and check whether it is still dodgy)
 
 %%
-clc, clear, close all
+
+function [P_coeff] = BCRepro_main(im,D_ind)
+%clc, clear, close all
 
 % % Load
 
@@ -31,18 +35,19 @@ clc, clear, close all
 % (original ref uses 9 images)
 % chosen this one since the first set has less sidecar (presumably
 % calibration files) to deal with)
-load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
-im = reflectances; clear reflectances
+
+% load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
+% im = reflectances; clear reflectances
 S_im=[410,10,31];
 
-% Urghhhh, so there's some weird banding artefacts with the images. Not sure
-% what's going on. For now I just crop the zeros out.
-im = im(1:750,:,:);
-% for i=1:31
-%     imshow(im(:,:,i))
-%     drawnow
-%     pause(0.5)
-% end
+% % Urghhhh, so there's some weird banding artefacts with the images. Not sure
+% % what's going on. For now I just crop the zeros out.
+% im = im(1:750,:,:);
+% % for i=1:31
+% %     imshow(im(:,:,i))
+% %     drawnow
+% %     pause(0.5)
+% % end
 
 % Illuminants
 % 21 D ills 3600:25000, no mention of interval so assuming the interval
@@ -103,7 +108,12 @@ S_LMSRI=S_im;
 
 %% Convert to radiance
 
-spd=daylight_spd(:,4); % For now I'll just use daylight_spd(:,4) (CCT=6600)
+if exist('D_ind','var')
+    spd=daylight_spd(:,D_ind);
+else
+    spd=daylight_spd(:,4); % For now I'll just use daylight_spd(:,4) (CCT=6600)
+    disp('Using default CCT')
+end    
 spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval of Foster images
 
 %figure, hold on, scatter(SToWls(S_cieday),spd)
@@ -209,8 +219,7 @@ table5 = [0.49, 0.48, 0.38, 0.45, 0.43;...
 % P_coeff'-table5
 % format
 
-figure
-imshow(abs(P_coeff'-table5),'InitialMagnification', 8000)
+% figure, imshow(abs(P_coeff'-table5),'InitialMagnification', 8000)
 
 %% Second level
 
@@ -219,3 +228,4 @@ imshow(abs(P_coeff'-table5),'InitialMagnification', 8000)
 
 
 
+end
