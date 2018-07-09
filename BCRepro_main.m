@@ -214,10 +214,17 @@ if plt_correction
 end
 
 %% PCA
+
+if ~exist('level','var')
+    level = 1; %set level, unless we're inside a function
+    Tn = 5;
+end
+
 if level == 1
     [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_LMSRI_c(:,1:Tn));
 elseif level == 2    
     [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_lsri_c(:,1:Tn));
+end
 
     
     

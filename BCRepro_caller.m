@@ -12,30 +12,49 @@ im = im(1:750,:,:);
 %     pause(0.5)
 % end
 
+D_CCT=3600:1020:25000; 
+
 % Reminder: [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn)
 
 % prints out everything
 %   haven't worked out the best way to store these differently shaped
 %   variables yet
 
-%for im = im
-    for D_ind = 1%:21
+res=struct(); %res=results
+
+tic
+for imn = 1 %!!!!!!!!!!!!!
+    for D_ind = 1:21 %!!!!!!!!!!!!
         for level = [1,2]
             if level == 1
                 for Tn = [3,4,5] %LMS,LMSR,LMSRI
-                    [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn) 
+                    [res(end+1).P_coeff,res(end+1).P_explained] = BCRepro_main(im,D_ind,level,Tn);
+                    res(end).imn     = imn;
+                    res(end).D_ind  = D_ind;
+                    res(end).CCT    = D_CCT(D_ind);
+                    res(end).level  = level;
+                    res(end).Tn     = Tn;
                 end
             elseif level == 2
-                for Tn = [2,3,4] %ls,lsr,lsri                   
-                    [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn) 
+                for Tn = [2,3,4] %ls,lsr,lsri
+                    [res(end+1).P_coeff,res(end+1).P_explained] = BCRepro_main(im,D_ind,level,Tn);
+                    res(end).imn     = imn;
+                    res(end).D_ind  = D_ind;
+                    res(end).CCT    = D_CCT(D_ind);
+                    res(end).level  = level;
+                    res(end).Tn     = Tn;
                 end
-            end
+            end            
         end
+        %disp(D_CCT(D_ind))
     end
+end
+
+res(1)=[];
 %end
+time_taken=toc;
 
-
-
+save
 
 
 %%
