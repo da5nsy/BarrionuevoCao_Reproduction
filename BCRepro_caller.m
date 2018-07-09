@@ -1,6 +1,7 @@
 clc, clear, close all
-% BCRepro_caller calls BCRepro_main
+% Calls BCRepro_main with appropriate range of inputs
 
+% Load images
 load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
 im = reflectances; clear reflectances
 
@@ -11,14 +12,31 @@ im = im(1:750,:,:);
 %     pause(0.5)
 % end
 
-%Reminder:
-D_CCT=3600:1020:25000;
-%D_ind=4; %Choose the D_CCT
+% Reminder: [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn)
 
-for D_ind=1:length(D_CCT)
-    coeff(:,:,D_ind) = BCRepro_main(im, D_ind)';
-    disp(D_CCT(D_ind))
-end
+% prints out everything
+%   haven't worked out the best way to store these differently shaped
+%   variables yet
+
+%for im = im
+    for D_ind = 1%:21
+        for level = [1,2]
+            if level == 1
+                for Tn = [3,4,5] %LMS,LMSR,LMSRI
+                    [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn) 
+                end
+            elseif level == 2
+                for Tn = [2,3,4] %ls,lsr,lsri                   
+                    [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn) 
+                end
+            end
+        end
+    end
+%end
+
+
+
+
 
 %%
 
