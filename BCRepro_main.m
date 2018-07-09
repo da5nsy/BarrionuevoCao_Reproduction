@@ -13,13 +13,10 @@
 % Version: 3.0.14 - Flavor: beta - Corresponds to SVN Revision 8424
 
 % TO DO list
-% - Second level pca
-% - pca not including rods/melanopsin
+% - Non-linear CCT range
 % - Do I need to do that initial normalisation?
-% - Multiple light sources
 % - Multiple images
 % - Think more about whether the sign inverted row is actually important?
-% (Can you just sign invert and it means nothing?)
 % - Find a way to programmatically crop out the zeros 
 % (re-download data and check whether it is still dodgy)
 
