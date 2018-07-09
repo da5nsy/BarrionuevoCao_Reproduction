@@ -27,7 +27,9 @@
 
 function [P_coeff] = BCRepro_main(im,D_ind)
 %% Load
-
+if ~exist('D_ind','var') %hacky way to clear everything during testing
+    clc, clear, close all
+end
 
 % Imagery
 
@@ -121,9 +123,9 @@ else
 end    
 spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval of Foster images
 
-figure, hold on, %check interpolation
-scatter(SToWls(S_cieday),  spd)
-scatter(SToWls(S_im),      spd_i);
+% figure, hold on, %check interpolation
+% scatter(SToWls(S_cieday),  spd)
+% scatter(SToWls(S_im),      spd_i);
 
 for i = 1:size(im,3)
     im_r(:,:,i) = im(:,:,i)*spd_i(i); %image radiance
@@ -135,7 +137,7 @@ end
 %     pause(0.5)
 % end
 
-%% Calculate LMSRI for each pixel
+%% Calculate LMSRI and lsri for each pixel
 
 % https://personalpages.manchester.ac.uk/staff/david.foster/Tutorial_HSI2RGB/Tutorial_HSI2RGB.html
 
@@ -143,8 +145,10 @@ end
 im_rr = reshape(im_r, r*c, w); %Image radiance reshaped
 
 im_LMSRI = (T_LMSRI*im_rr')';
+im_lsri=im_LMSRI(:,[1,3,4,5])./(im_LMSRI(:,1)+im_LMSRI(:,2));
 
-im_LMSRI_shape = reshape(im_LMSRI, r, c, 5);
+% If one wanted it reshaped back to the shape of the actualy image
+% im_LMSRI_shape = reshape(im_LMSRI, r, c, 5); 
 
 im_LMSRI = max(im_LMSRI, 0);
 im_LMSRI = im_LMSRI/max(im_LMSRI(:));
