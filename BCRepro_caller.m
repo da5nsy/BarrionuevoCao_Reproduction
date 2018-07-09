@@ -54,7 +54,7 @@ res(1)=[];
 %end
 time_taken=toc;
 
-save
+save('res.mat','res')
 
 
 %%
