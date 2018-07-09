@@ -26,39 +26,44 @@
 %%
 
 function [P_coeff] = BCRepro_main(im,D_ind)
-%clc, clear, close all
+%% Load
 
-% % Load
 
 % Imagery
-% Initial version loads only one image, future versions would load multiple
-% (original ref uses 9 images)
-% chosen this one since the first set has less sidecar (presumably
-% calibration files) to deal with)
 
-% load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
-% im = reflectances; clear reflectances
+if ~exist('im','var') %if this script isn't being used as a function...
+    
+    % default = 2002/scene3
+    load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
+    im = reflectances; clear reflectances
+    disp('using default image')
+        
+    % Manual cropping, would be good to replace with auto 
+    % / find images that don't need cropping
+    im = im(1:750,:,:); % (2002/scene3)
+    
+%     for i=1:31
+%         imshow(im(:,:,i))
+%         drawnow
+%         pause(0.5)
+%     end
+end
 S_im=[410,10,31];
 
-% % Urghhhh, so there's some weird banding artefacts with the images. Not sure
-% % what's going on. For now I just crop the zeros out.
-% im = im(1:750,:,:);
-% % for i=1:31
-% %     imshow(im(:,:,i))
-% %     drawnow
-% %     pause(0.5)
-% % end
 
 % Illuminants
+
 % 21 D ills 3600:25000, no mention of interval so assuming the interval
 % which gives 21, though an interval of 1020 is weird, and I personally
 % would think that a non-linear interval would make more sense.
-D_CCT=3600:1020:25000; %but including [3940,5205,6677,24770]
+% (paper shows [3940,5205,6677,24770] on figures)
+D_CCT=3600:1020:25000; 
 load B_cieday
-daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); %these appear to be linearly upsampled from 10nm intervals
+daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); %caution: these appear to be linearly upsampled from 10nm intervals
 for i=1:size(daylight_spd,2) %Normalise. Sure there's a more efficient way to do this with matrix division but I am tired.
     daylight_spd(:,i)=daylight_spd(:,i)/max(daylight_spd(:,i));
 end
+
 
 % Observer(s)
 
@@ -108,16 +113,17 @@ S_LMSRI=S_im;
 
 %% Convert to radiance
 
-if exist('D_ind','var')
+if exist('D_ind','var') %if this script is being used as a function, and D_ind has been specified
     spd=daylight_spd(:,D_ind);
 else
-    spd=daylight_spd(:,4); % For now I'll just use daylight_spd(:,4) (CCT=6600)
+    spd=daylight_spd(:,4); % default = daylight_spd(:,4) (CCT=6600)
     disp('Using default CCT')
 end    
 spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval of Foster images
 
-%figure, hold on, scatter(SToWls(S_cieday),spd)
-%scatter(SToWls(S_im),spd_i);
+figure, hold on, %check interpolation
+scatter(SToWls(S_cieday),  spd)
+scatter(SToWls(S_im),      spd_i);
 
 for i = 1:size(im,3)
     im_r(:,:,i) = im(:,:,i)*spd_i(i); %image radiance
