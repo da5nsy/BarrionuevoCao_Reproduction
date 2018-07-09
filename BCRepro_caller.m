@@ -20,3 +20,25 @@ for D_ind=1:length(D_CCT)
     disp(D_CCT(D_ind))
 end
 
+%%
+
+% format bank
+% P_coeff'
+% format
+
+% Compare with table 5 of original pub
+% It looks as though the third component might have the wrong signs, hmmm
+% otherwise everything else matches fairly well
+
+% from pub, for comparison
+table5 = [0.49, 0.48, 0.38, 0.45, 0.43;...
+    -0.40 -0.38, 0.80, -0.04, 0.20;...
+    0.59, -0.08, 0.39, -0.48, -0.48;...
+    -0.45, 0.64 0.21, 0.15, -0.54;...
+    0.18, -0.45, 0.03, 0.73, -0.48];
+
+% format bank
+% P_coeff'-table5
+% format
+
+% figure, imshow(abs(P_coeff'-table5),'InitialMagnification', 8000)

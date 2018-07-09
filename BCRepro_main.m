@@ -25,7 +25,16 @@
 
 %%
 
-function [P_coeff] = BCRepro_main(im,D_ind)
+function [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn)
+% im = image
+% D_ind = an index for which illuminant to use 
+%   (from a series of CCT defined D series illuminants)
+% level = which level do you want to do this at? 
+%   (1 = LMSRI, 2 = lsri (with luminance removed before analysis)
+% Tn = number of sensitivities (T in psychtoolbox terminology)
+%   (3/4/5 = LMS/LMSR/LMSRI or 2/3/4 = ls/lsr/lsri)    
+
+
 %% Load
 if ~exist('D_ind','var') %hacky way to clear everything during testing
     clc, clear, close all
@@ -119,7 +128,7 @@ if exist('D_ind','var') %if this script is being used as a function, and D_ind h
     spd=daylight_spd(:,D_ind);
 else
     spd=daylight_spd(:,4); % default = daylight_spd(:,4) (CCT=6600)
-    disp('Using default CCT')
+    disp('using default CCT')
 end    
 spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval of Foster images
 
@@ -144,14 +153,13 @@ end
 [r,c,w] = size(im_r);
 im_rr = reshape(im_r, r*c, w); %Image radiance reshaped
 
-im_LMSRI = (T_LMSRI*im_rr')';
-im_lsri=im_LMSRI(:,[1,3,4,5])./(im_LMSRI(:,1)+im_LMSRI(:,2));
+im_LMSRI = (T_LMSRI*im_rr')';                                 %First level
+im_lsri=im_LMSRI(:,[1,3,4,5])./(im_LMSRI(:,1)+im_LMSRI(:,2)); %Second level
 
-% If one wanted it reshaped back to the shape of the actualy image
-% im_LMSRI_shape = reshape(im_LMSRI, r, c, 5); 
-
-im_LMSRI = max(im_LMSRI, 0);
 im_LMSRI = im_LMSRI/max(im_LMSRI(:));
+
+% If one wanted it reshaped back to the shape of the actual image
+% im_LMSRI_shape = reshape(im_LMSRI, r, c, 5); 
 
 %% Correction (eq 1)
 
@@ -196,6 +204,7 @@ if plt_process
 end
 
 im_LMSRI_c = log(im_LMSRI)-mean(log(im_LMSRI)); %'c' = 'corrected'
+im_lsri_c  = log(im_lsri)-mean(log(im_lsri));   %'c' = 'corrected'
 
 if plt_correction
     figure,
@@ -205,37 +214,15 @@ if plt_correction
 end
 
 %% PCA
+if level == 1
+    [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_LMSRI_c(:,1:Tn));
+elseif level == 2    
+    [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_lsri_c(:,1:Tn));
 
-%clc
-
-[P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_LMSRI_c);
-
-% format bank
-% P_coeff'
-% format
-
-% Compare with table 5 of original pub
-% It looks as though the third component might have the wrong signs, hmmm
-% otherwise everything else matches fairly well
-
-% from pub, for comparison
-table5 = [0.49, 0.48, 0.38, 0.45, 0.43;...
-    -0.40 -0.38, 0.80, -0.04, 0.20;...
-    0.59, -0.08, 0.39, -0.48, -0.48;...
-    -0.45, 0.64 0.21, 0.15, -0.54;...
-    0.18, -0.45, 0.03, 0.73, -0.48];
-
-% format bank
-% P_coeff'-table5
-% format
-
-% figure, imshow(abs(P_coeff'-table5),'InitialMagnification', 8000)
-
-%% Second level
-
-%% Stats
-
-
-
-
+    
+    
+    
+    
+    
+    
 end
