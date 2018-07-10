@@ -1,5 +1,3 @@
-%% -WORK IN PROGRESS-
-%
 % Code to reproduce analysis from:
 %
 % P. A. Barrionuevo and D. Cao,
