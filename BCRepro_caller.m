@@ -1,48 +1,79 @@
+% Calls BCRepro_main with appropriate range of inputs, 
+% and visualizes results
+
 clc, clear, close all
-% Calls BCRepro_main with appropriate range of inputs
+
+show_ims = 0;
 
 % Load images
-load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
-im = reflectances; clear reflectances
-
-im = im(1:750,:,:);
-% for i=1:31
-%     imshow(im(:,:,i))
-%     drawnow
-%     pause(0.5)
+base = 'C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\';
+for i=1:4 %2002 images
+    ims(i)=load([base, '2002\scene',num2str(i),'.mat']); %imageS
+end
+%2004 images
+ims(5)=load([base,'2004\scene1\scene1\ref_crown3bb_reg1.mat']);
+ims(6)=load([base,'2004\scene2\scene2\ref_ruivaes1bb_reg1.mat']);
+ims(7)=load([base,'2004\scene3\scene3\ref_mosteiro4bb_reg1.mat']);
+ims(8)=load([base,'2004\scene4\scene4\ref_cyflower1bb_reg1.mat']);
+ims(9)=load([base,'2004\scene5\scene5\ref_cbrufefields1bb_reg1.mat']);
+% for i=1:9
+%     figure,imagesc(im(i).reflectances(:,:,17)); colormap('gray'); brighten(0.5);
 % end
+memory %check how much memory is being used
 
-D_CCT=3600:1020:25000; %defined here for ease, but it's actually only and index that gets passed to the main function rather than the CCT itself
+%Remove black bars
+%visualise
+% for i=1:4
+%     figure(i), plot(im(i).reflectances(:,500,17))
+% end
+% figure, plot(im(4).reflectances(500,:,17))
+ims(1).reflectances = ims(1).reflectances(1:748,:,:);
+ims(2).reflectances = ims(2).reflectances(1:700,:,:);
+ims(3).reflectances = ims(3).reflectances(1:750,:,:);
+ims(4).reflectances = ims(4).reflectances(1:664,96:end,:);
+if show_ims
+    for i=1:9
+        figure,imagesc(ims(i).reflectances(:,:,17)); colormap('gray'); brighten(0.5);
+    end
+end
 
-res=struct(); %res=results
+% 21 D ills 3600:25000, no mention of interval so assuming the interval
+% which gives 21, though an interval of 1020 is weird, and I personally
+% would think that a non-linear interval would make more sense.
+% (paper shows [3940,5205,6677,24770] on figures)
+D_CCT_range=3600:1020:25000; 
+
+%% Call function
+res=struct(); %'res', short for results
 
 try load('results.mat')
 catch
     tic
-    for imn = 1 %!!!!!!!!!!!!!
-        for D_ind = 1:21 %!!!!!!!!!!!!
+    for imn = 1:length(ims)
+        im=ims(imn).reflectances;
+        for D_CCT = D_CCT_range
             for level = [1,2]
                 if level == 1
                     for Tn = [3,4,5] %LMS,LMSR,LMSRI
-                        [res(end+1).P_coeff,res(end+1).P_explained] = BCRepro_main(im,D_ind,level,Tn);
-                        res(end).imn     = imn;
-                        res(end).D_ind  = D_ind;
-                        res(end).CCT    = D_CCT(D_ind);
+                        [res(end+1).P_coeff,res(end+1).P_explained] = BCRepro_main(im,D_CCT,level,Tn);
+                        res(end).imn    = imn;
+                        res(end).CCT    = D_CCT;
                         res(end).level  = level;
                         res(end).Tn     = Tn;
                     end
                 elseif level == 2
                     for Tn = [2,3,4] %ls,lsr,lsri
-                        [res(end+1).P_coeff,res(end+1).P_explained] = BCRepro_main(im,D_ind,level,Tn);
-                        res(end).imn     = imn;
-                        res(end).D_ind  = D_ind;
-                        res(end).CCT    = D_CCT(D_ind);
+                        [res(end+1).P_coeff,res(end+1).P_explained] = BCRepro_main(im,D_CCT,level,Tn);
+                        res(end).imn    = imn;
+                        res(end).CCT    = D_CCT;
                         res(end).level  = level;
                         res(end).Tn     = Tn;
                     end
                 end
             end
-            disp(D_CCT(D_ind))
+            %progress indicators:
+            disp(imn)
+            disp(D_CCT)
         end
     end
     res(1)=[];
@@ -54,104 +85,11 @@ end
 
 %% Visualisation
 
-% Reproduce figure 2
-
-% TO DO:
-% - add plot lines
-% - go back and add multiple images
-% - get legends in the right place
-
-figure('units','normalized','outerposition',[0 0 0.5 1]), hold on
-ylb={'1st Component Coefficients','2nd Component Coefficients','3rd Component Coefficients','4th Component Coefficients','5th Component Coefficients'};
-
-for j=1:4
-    subplot(4,2,j*2-1), hold on
-    plot([0,D_CCT(end)],[0,0],'k:')
-    for i=1:length(res)
-        if (min(size(res(i).P_coeff) == [4,4])) && (res(i).level == 1)
-            h1 = scatter(res(i).CCT,res(i).P_coeff(1,j),'k','filled',                'MarkerEdgeColor',[0,0,0]);
-            h2 = scatter(res(i).CCT,res(i).P_coeff(2,j),'ks','filled',               'MarkerEdgeColor',[0,0,0]);        
-            h3 = scatter(res(i).CCT,res(i).P_coeff(3,j),'k^','filled',               'MarkerEdgeColor',[0,0,0]);              
-            h4 = scatter(res(i).CCT,res(i).P_coeff(4,j),'MarkerFaceColor',[1,1,1],   'MarkerEdgeColor',[0,0,0]);
-        end
-    end
-    ylim([-1,1])
-    ylabel(ylb(1,j))    
+for imn=1:length(ims)
+    [f2,f3] = BCRepro_figs(res, D_CCT_range,imn);
+    saveas(f2,['f2_im',num2str(imn),'.tiff'])    
+    saveas(f3,['f3_im',num2str(imn),'.tiff'])
 end
-xlabel('Illuminant CCT (K)')
-
-for j=1:3
-    subplot(4,2,j*2+2), hold on
-    plot([0,D_CCT(end)],[0,0],'k:')
-    for i=1:length(res)
-        if (min(size(res(i).P_coeff) == [3,3])) && (res(i).level == 2)
-            h5 = scatter(res(i).CCT,res(i).P_coeff(1,j),'k','filled',                'MarkerEdgeColor',[0,0,0]);
-            h6 = scatter(res(i).CCT,res(i).P_coeff(2,j),'k^','filled',               'MarkerEdgeColor',[0,0,0]);             
-            h7 = scatter(res(i).CCT,res(i).P_coeff(3,j),'MarkerFaceColor',[1,1,1],   'MarkerEdgeColor',[0,0,0]);
-        end
-    end
-    ylim([-1,1])
-    ylabel(ylb(1,j))    
-end
-xlabel('Illuminant CCT (K)')
-
-subplot(4,2,1)
-title('A: First Level Analysis')
-legend([h1 h2 h3 h4],{'L','M','S','R'})
-
-
-subplot(4,2,4)
-title('B: Second Level Analysis')
-legend([h5 h6 h7],{'L/(L+M)','S/(L+M)','R/(L+M)'})
-
-
-% - %
-
-% Reproduce figure 3
-
-figure('units','normalized','outerposition',[0 0 0.5 1]), hold on
-
-for j=1:5
-    subplot(5,2,j*2-1), hold on
-    plot([0,D_CCT(end)],[0,0],'k:')
-    for i=1:length(res)
-        if (min(size(res(i).P_coeff) == [5,5])) && (res(i).level == 1)
-            h1 = scatter(res(i).CCT,res(i).P_coeff(1,j),'k','filled',                'MarkerEdgeColor',[0,0,0]);
-            h2 = scatter(res(i).CCT,res(i).P_coeff(2,j),'ks','filled',               'MarkerEdgeColor',[0,0,0]);        
-            h3 = scatter(res(i).CCT,res(i).P_coeff(3,j),'k^','filled',               'MarkerEdgeColor',[0,0,0]);              
-            h4 = scatter(res(i).CCT,res(i).P_coeff(4,j),'MarkerFaceColor',[1,1,1],   'MarkerEdgeColor',[0,0,0]);             
-            h5 = scatter(res(i).CCT,res(i).P_coeff(5,j),'v','MarkerFaceColor',[1,1,1],   'MarkerEdgeColor',[0,0,0]);
-        end
-    end
-    ylim([-1,1])
-    ylabel(ylb(1,j))    
-end
-xlabel('Illuminant CCT (K)')
-
-for j=1:4
-    subplot(5,2,j*2+2), hold on
-    plot([0,D_CCT(end)],[0,0],'k:')
-    for i=1:length(res)
-        if (min(size(res(i).P_coeff) == [4,4])) && (res(i).level == 2)
-            h6 = scatter(res(i).CCT,res(i).P_coeff(1,j),'k','filled',                'MarkerEdgeColor',[0,0,0]);
-            h7 = scatter(res(i).CCT,res(i).P_coeff(2,j),'k^','filled',               'MarkerEdgeColor',[0,0,0]);             
-            h8 = scatter(res(i).CCT,res(i).P_coeff(3,j),'MarkerFaceColor',[1,1,1],   'MarkerEdgeColor',[0,0,0]);
-            h9 = scatter(res(i).CCT,res(i).P_coeff(4,j),'v','MarkerFaceColor',[1,1,1],   'MarkerEdgeColor',[0,0,0]);
-        end
-    end
-    ylim([-1,1])
-    ylabel(ylb(1,j))    
-end
-xlabel('Illuminant CCT (K)')
-
-subplot(5,2,1)
-title('A: First Level Analysis')
-legend([h1 h2 h3 h4 h5],{'L','M','S','R','I'})
-
-
-subplot(5,2,4)
-title('B: Second Level Analysis')
-legend([h6 h7 h8 h9],{'L/(L+M)','S/(L+M)','R/(L+M)','I/(L+M)'})
 
 % - %
 

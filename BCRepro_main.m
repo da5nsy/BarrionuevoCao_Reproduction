@@ -1,4 +1,4 @@
-% -WORK IN PROGRESS-
+%% -WORK IN PROGRESS-
 %
 % Code to reproduce analysis from:
 %
@@ -15,17 +15,12 @@
 % TO DO list
 % - Non-linear CCT range
 % - Do I need to do that initial normalisation?
-% - Multiple images
-% - Think more about whether the sign inverted row is actually important?
-% - Find a way to programmatically crop out the zeros 
-% (re-download data and check whether it is still dodgy)
 
 %%
 
-function [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn)
+function [P_coeff,P_explained] = BCRepro_main(im,D_CCT,level,Tn)
 % im = image
-% D_ind = an index for which illuminant to use 
-%   (from a series of CCT defined D series illuminants)
+% D_CCT = Correlated colour temperature of the D series ill to be used
 % level = which level do you want to do this at? 
 %   (1 = LMSRI, 2 = lsri (with luminance removed before analysis)
 % Tn = number of sensitivities (T in psychtoolbox terminology)
@@ -33,9 +28,6 @@ function [P_coeff,P_explained] = BCRepro_main(im,D_ind,level,Tn)
 
 
 %% Load
-if ~exist('D_ind','var') %hacky way to clear everything during testing
-    clc, clear, close all
-end
 
 % Imagery
 
@@ -46,8 +38,7 @@ if ~exist('im','var') %if this script isn't being used as a function...
     im = reflectances; clear reflectances
     disp('using default image')
         
-    % Manual cropping, would be good to replace with auto 
-    % / find images that don't need cropping
+    % Manual cropping out of black band
     im = im(1:750,:,:); % (2002/scene3)
     
 %     for i=1:31
@@ -56,21 +47,25 @@ if ~exist('im','var') %if this script isn't being used as a function...
 %         pause(0.5)
 %     end
 end
-S_im=[410,10,31];
+if size(im,3)==31 %2002 images
+    S_im=[410,10,31];
+elseif size(im,3)==33 %2004 images #1:4  
+    S_im=[400,10,33];
+elseif size(im,3)==32 %2004 image #5   
+    S_im=[400,10,32];
+end
 
 
 % Illuminants
 
-% 21 D ills 3600:25000, no mention of interval so assuming the interval
-% which gives 21, though an interval of 1020 is weird, and I personally
-% would think that a non-linear interval would make more sense.
-% (paper shows [3940,5205,6677,24770] on figures)
-D_CCT=3600:1020:25000; 
 load B_cieday
-daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); %caution: these appear to be linearly upsampled from 10nm intervals
-for i=1:size(daylight_spd,2) %Normalise. Sure there's a more efficient way to do this with matrix division but I am tired.
-    daylight_spd(:,i)=daylight_spd(:,i)/max(daylight_spd(:,i));
+if ~exist('D_CCT','var') %If this script is not being used as a function...
+    D_CCT=6500;
+    disp('using default CCT: 6500K')
 end
+daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); 
+daylight_spd = daylight_spd/max(daylight_spd);
+%caution: these appear to be linearly upsampled from 10nm intervals
 
 
 % Observer(s)
@@ -121,13 +116,7 @@ S_LMSRI=S_im;
 
 %% Convert to radiance
 
-if exist('D_ind','var') %if this script is being used as a function, and D_ind has been specified
-    spd=daylight_spd(:,D_ind);
-else
-    spd=daylight_spd(:,4); % default = daylight_spd(:,4) (CCT=6600)
-    disp('using default CCT')
-end    
-spd_i=SplineSpd(S_cieday,spd,S_im,1); %interpolate to match range and interval of Foster images
+spd_i=SplineSpd(S_cieday,daylight_spd,S_im,1); %interpolate to match range and interval of Foster images
 
 % figure, hold on, %check interpolation
 % scatter(SToWls(S_cieday),  spd)
