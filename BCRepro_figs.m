@@ -1,4 +1,10 @@
 % Code for reproducing figures
+
+% Proposed modification (not coded for):
+% Plot absolute component co-efficients and indicate cut-off (0.1)
+% Downside: loses sign info, upside: easier to see which are contributing
+%   vs which are not.
+
 function [f2,f3] = BCRepro_figs(res,D_CCT_range,imn)
 
 % Reproduce figure 2
