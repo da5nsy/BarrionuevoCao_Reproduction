@@ -34,7 +34,7 @@ if ~exist('im','var') %if this script isn't being used as a function...
     % default = 2002/scene3
     load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
     im = reflectances; clear reflectances
-    disp('using default image')
+    disp('using default image: 2002/scene3')
         
     % Manual cropping out of black band
     im = im(1:750,:,:); % (2002/scene3)
@@ -140,37 +140,37 @@ im_rr = reshape(im_r, r*c, w); %Image radiance reshaped
 im_LMSRI = (T_LMSRI*im_rr')';                                 %First level
 im_lsri=im_LMSRI(:,[1,3,4,5])./(im_LMSRI(:,1)+im_LMSRI(:,2)); %Second level
 
-im_LMSRI = im_LMSRI/max(im_LMSRI(:));
-
 % If one wanted it reshaped back to the shape of the actual image
 % im_LMSRI_shape = reshape(im_LMSRI, r, c, 5); 
 
 %% Correction (eq 1)
 
-plt_process     = 0;
+plt_process     = 1;
 plt_correction  = 0;
 
 if plt_process
     
-    figure,
+    figure('units','normalized','outerposition',[0 0 1 1])
     for i=1:5
         subplot(3,5,i)
         hist(im_LMSRI(:,i),500)
-        xlim([0 1])
+        xlim([0 20])
         ylim([0 25000])
         if i==1
-            ylabel('raw values')
+            ylabel('count')
         end
+        xlabel('raw values')
     end
     
     for i=1:5
         subplot(3,5,5+i)
         hist(log(im_LMSRI(:,i)),500)
-        xlim([-5 0])
+        xlim([-3 3])
         ylim([0 6000])
         if i==1
-            ylabel('log')
+            ylabel('count')
         end
+        xlabel('log')
     end
     
     for i=1:5
@@ -179,8 +179,9 @@ if plt_process
         xlim([-3 3])
         ylim([0 6000])
         if i==1
-            ylabel('log -mean(log)')
+            ylabel('count')
         end
+        xlabel('log -mean(log)')
         hold on
         plot([0,0],ylim,'k')
     end
