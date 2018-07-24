@@ -1,3 +1,5 @@
+function [P_coeff,P_explained] = BCRepro_main(im,D_CCT,level,Tn)
+
 % Code to reproduce analysis from:
 %
 % P. A. Barrionuevo and D. Cao,
@@ -10,19 +12,23 @@
 % Psychtoolbox (could probs be done without, but it makes it easy)
 % Version: 3.0.14 - Flavor: beta - Corresponds to SVN Revision 8424
 
-% TO DO list
-% - Non-linear CCT range
-% - Do I need to do that initial normalisation?
-
-%%
-
-function [P_coeff,P_explained] = BCRepro_main(im,D_CCT,level,Tn)
+% Variables:
 % im = image
 % D_CCT = Correlated colour temperature of the D series ill to be used
 % level = which level do you want to do this at? 
 %   (1 = LMSRI, 2 = lsri (with luminance removed before analysis)
 % Tn = number of sensitivities (T in psychtoolbox terminology)
-%   (3/4/5 = LMS/LMSR/LMSRI or 2/3/4 = ls/lsr/lsri)    
+%   (3/4/5 = LMS/LMSR/LMSRI or 2/3/4 = ls/lsr/lsri)   
+
+% TO DO list
+% - Non-linear CCT range
+% - This whole operation would run faster if I split everything here but
+%   the last section (the pca) into a function, which would be called
+%   something like 'get_im_LMSRI_c', and which would only be called once
+%   per 'Tn', and then the pca could be done on the other side (in
+%   BCRepro_caller.m). This seems like definitely the right thing to do but
+%   there isn't the justification for me to do it right now, and so I shall
+%   put up with it being slow.
 
 
 %% Load
@@ -68,18 +74,8 @@ daylight_spd = daylight_spd/max(daylight_spd);
 
 % Observer(s)
 
-% Smith-Pokorny from CVRL
-T_sp = csvread('C:\Users\cege-user\Dropbox\UCL\Data\Colour standards\CVRL cone fundamentals\sp.csv');
-T_sp(:,2:4)=(10.^(T_sp(:,2:4)))./max(10.^(T_sp(:,2:4))); %Make non-log, and normalise to peak 1
-S_sp=[T_sp(1,1),T_sp(2,1)-T_sp(1,1),length(T_sp)]; %Get wavlength range, and put in psychtoolbox format
-T_sp=T_sp(:,2:4)'; %Remove wavelength range
-%plot(SToWls(S_sp),T_sp)
-
-% Psychtoolbox version
-% % Not using because of 0s at low and high ends.
-% % See note on http://docs.psychtoolbox.org/PsychColorimetricMatFiles
-% load T_cones_sp
-% plot(SToWls(S_cones_sp),T_cones_sp,'o')
+% Smith-Pokorny
+load T_cones_sp
 
 % Rods
 load T_rods
@@ -93,12 +89,12 @@ load T_rods
 load T_melanopsin
 
 % figure, hold on
-% plot(SToWls(S_sp),T_sp)
+% plot(SToWls(S_cones_sp),T_cones_sp)
 % plot(SToWls(S_rods),T_rods)
 % plot(SToWls(S_melanopsin),T_melanopsin)
 
 % Pull them all together
-T_LMSRI=[(SplineCmf(S_sp,T_sp,S_im));...
+T_LMSRI=[(SplineCmf(S_cones_sp,T_cones_sp,S_im));...
     (SplineCmf(S_rods,T_rods,S_im));...
     (SplineCmf(S_melanopsin,T_melanopsin,S_im))];
 
@@ -145,7 +141,7 @@ im_lsri=im_LMSRI(:,[1,3,4,5])./(im_LMSRI(:,1)+im_LMSRI(:,2)); %Second level
 
 %% Correction (eq 1)
 
-plt_process     = 1;
+plt_process     = 0;
 plt_correction  = 0;
 
 if plt_process
@@ -201,8 +197,10 @@ end
 %% PCA
 
 if ~exist('level','var')
-    level = 1; %set level, unless we're inside a function
+    level = 1; %set level, unless we're inside a function    
+    disp('using default level: 1')
     Tn = 5;
+    disp('using default number of receptors: 5')
 end
 
 if level == 1
@@ -211,10 +209,5 @@ elseif level == 2
     [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_lsri_c(:,1:Tn));
 end
 
-    
-    
-    
-    
-    
-    
 end
+

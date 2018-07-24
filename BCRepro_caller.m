@@ -3,7 +3,7 @@
 
 clc, clear, close all
 
-show_ims = 0;
+show_ims = 0; %choose whether to show visuals of images
 
 % Load images
 base = 'C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\';
@@ -21,21 +21,26 @@ ims(9)=load([base,'2004\scene5\scene5\ref_cbrufefields1bb_reg1.mat']);
 % end
 memory %check how much memory is being used
 
-%Remove black bars
+% Remove black bars
+% Since this script was written David Foster has replaced the files
+% available from his site with ones which have already been cropped,
+% rendering the below superfluous.
+
 %visualise
 % for i=1:4
 %     figure(i), plot(im(i).reflectances(:,500,17))
 % end
 % figure, plot(im(4).reflectances(500,:,17))
+
 ims(1).reflectances = ims(1).reflectances(1:748,:,:);
 ims(2).reflectances = ims(2).reflectances(1:700,:,:);
 ims(3).reflectances = ims(3).reflectances(1:750,:,:);
 ims(4).reflectances = ims(4).reflectances(1:664,96:end,:);
-if show_ims
-    for i=1:9
-        figure,imagesc(ims(i).reflectances(:,:,17)); colormap('gray'); brighten(0.5);
-    end
-end
+% if show_ims
+%     for i=1:9
+%         figure,imagesc(ims(i).reflectances(:,:,17)); colormap('gray'); brighten(0.5);
+%     end
+% end
 
 % 21 D ills 3600:25000, no mention of interval so assuming the interval
 % which gives 21, though an interval of 1020 is weird, and I personally
@@ -44,9 +49,14 @@ end
 D_CCT_range=3600:1020:25000; 
 
 %% Call function
-res=struct(); %'res', short for results
 
-try load('results.mat')
+% Currently takes ~25mins to run full set
+% Top tip: make sure all the figures are turned off in the main script.
+%   MATLAB does not enoy opening 1134 figures simultaneously.
+
+res=struct(); %'res', short for 'results'
+
+try load('C:\Users\cege-user\Dropbox\Documents\MATLAB\BarrionuevoCao_Reproduction\results.mat')
 catch
     tic
     for imn = 1:length(ims)
@@ -87,33 +97,6 @@ end
 
 for imn=1:length(ims)
     [f2,f3] = BCRepro_figs(res, D_CCT_range,imn);
-    saveas(f2,['f2_im',num2str(imn),'.tiff'])    
-    saveas(f3,['f3_im',num2str(imn),'.tiff'])
+    saveas(f2,['f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])    
+    saveas(f3,['f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
 end
-
-% - %
-
-% for i=1:length(res)
-%     if (min(size(res(i).P_coeff) == [3,3])) && (res(i).level == 1)
-%         imshow((res(i).P_coeff+1)/2,'InitialMagnification', 8000)
-%         drawnow
-%         title(res(i).CCT)
-%         pause(0.3)
-%     end
-% end
-
-
-%%
-
-% % from pub, for comparison
-% table5 = [0.49, 0.48, 0.38, 0.45, 0.43;...
-%     -0.40 -0.38, 0.80, -0.04, 0.20;...
-%     0.59, -0.08, 0.39, -0.48, -0.48;...
-%     -0.45, 0.64 0.21, 0.15, -0.54;...
-%     0.18, -0.45, 0.03, 0.73, -0.48];
-
-% format bank
-% P_coeff'-table5
-% format
-
-% figure, imshow(abs(P_coeff'-table5),'InitialMagnification', 8000)
