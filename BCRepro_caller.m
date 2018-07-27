@@ -6,36 +6,21 @@ clc, clear, close all
 show_ims = 0; %choose whether to show visuals of images
 
 % Load images
-base = 'C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\';
+base = 'C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Images\';
 for i=1:4 %2002 images
     ims(i)=load([base, '2002\scene',num2str(i),'.mat']); %imageS
 end
 %2004 images
-ims(5)=load([base,'2004\scene1\scene1\ref_crown3bb_reg1.mat']);
-ims(6)=load([base,'2004\scene2\scene2\ref_ruivaes1bb_reg1.mat']);
-ims(7)=load([base,'2004\scene3\scene3\ref_mosteiro4bb_reg1.mat']);
-ims(8)=load([base,'2004\scene4\scene4\ref_cyflower1bb_reg1.mat']);
-ims(9)=load([base,'2004\scene5\scene5\ref_cbrufefields1bb_reg1.mat']);
+ims(5)=load([base,'2004\scene1\ref_crown3bb_reg1.mat']);
+ims(6)=load([base,'2004\scene2\ref_ruivaes1bb_reg1.mat']);
+ims(7)=load([base,'2004\scene3\ref_mosteiro4bb_reg1.mat']);
+ims(8)=load([base,'2004\scene4\ref_cyflower1bb_reg1.mat']);
+ims(9)=load([base,'2004\scene5\ref_cbrufefields1bb_reg1.mat']);
 % for i=1:9
 %     figure,imagesc(im(i).reflectances(:,:,17)); colormap('gray'); brighten(0.5);
 % end
 memory %check how much memory is being used
 
-% Remove black bars
-% Since this script was written David Foster has replaced the files
-% available from his site with ones which have already been cropped,
-% rendering the below superfluous.
-
-%visualise
-% for i=1:4
-%     figure(i), plot(im(i).reflectances(:,500,17))
-% end
-% figure, plot(im(4).reflectances(500,:,17))
-
-ims(1).reflectances = ims(1).reflectances(1:748,:,:);
-ims(2).reflectances = ims(2).reflectances(1:700,:,:);
-ims(3).reflectances = ims(3).reflectances(1:750,:,:);
-ims(4).reflectances = ims(4).reflectances(1:664,96:end,:);
 % if show_ims
 %     for i=1:9
 %         figure,imagesc(ims(i).reflectances(:,:,17)); colormap('gray'); brighten(0.5);
