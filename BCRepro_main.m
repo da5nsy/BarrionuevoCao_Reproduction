@@ -9,8 +9,12 @@ function [P_coeff,P_explained] = BCRepro_main(im,D_CCT,level,Tn)
 % p. A131, Apr. 2014.
 
 % Requires:
-% Psychtoolbox (could probs be done without, but it makes it easy)
+%
+% - Psychtoolbox (could probably be done without, but it makes it easy)
 % Version: 3.0.14 - Flavor: beta - Corresponds to SVN Revision 8424
+% Uses basic functions, presumably will be compatible with other versions.
+%
+% - MATLAB Statistics and Machine Learning Toolbox
 
 % Variables:
 % im = image
@@ -35,22 +39,6 @@ function [P_coeff,P_explained] = BCRepro_main(im,D_CCT,level,Tn)
 
 % Imagery
 
-if ~exist('im','var') %if this script isn't being used as a function...
-    
-    % default = 2002/scene3
-    load('C:\Users\cege-user\Dropbox\UCL\Data\Reference Data\Foster Lab Images\2002\scene3.mat')
-    im = reflectances; clear reflectances
-    disp('using default image: 2002/scene3')
-        
-    % Manual cropping out of black band
-    im = im(1:750,:,:); % (2002/scene3)
-    
-%     for i=1:31
-%         imshow(im(:,:,i))
-%         drawnow
-%         pause(0.5)
-%     end
-end
 if size(im,3)==31 %2002 images
     S_im=[410,10,31];
 elseif size(im,3)==33 %2004 images #1:4  
@@ -62,11 +50,7 @@ end
 
 % Illuminants
 
-load B_cieday
-if ~exist('D_CCT','var') %If this script is not being used as a function...
-    D_CCT=6500;
-    disp('using default CCT: 6500K')
-end
+load B_cieday % from PsychToolbox
 daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); 
 daylight_spd = daylight_spd/max(daylight_spd);
 %caution: these appear to be linearly upsampled from 10nm intervals
@@ -75,10 +59,10 @@ daylight_spd = daylight_spd/max(daylight_spd);
 % Observer(s)
 
 % Smith-Pokorny
-load T_cones_sp
+load T_cones_sp % from PsychToolbox
 
 % Rods
-load T_rods
+load T_rods % from PsychToolbox
 
 % Melanopsin
 % Psychtoolbox's melanopsin function is neither the same as the Lucas+ 2014
@@ -86,7 +70,7 @@ load T_rods
 % peak at 484. (PsychT = 488nm, Lucas = 490nm)
 % And so for simplicity, for now, I'll use psychtoolbox, but remember that
 % if the results come out slightly diff, this could be a contributor.
-load T_melanopsin
+load T_melanopsin % from PsychToolbox
 
 % figure, hold on
 % plot(SToWls(S_cones_sp),T_cones_sp)
@@ -102,7 +86,7 @@ S_LMSRI=S_im;
 
 % figure, plot(SToWls(S_LMSRI),T_LMSRI)
 
-%% Funky normalisation
+%% Funky normalisation in original paper
 
 % I don't think this section is required due to a later normalisation, but
 % I'll put this here just in case I'm wrong so that it's here to come back
@@ -110,7 +94,7 @@ S_LMSRI=S_im;
 
 %% Convert to radiance
 
-spd_i=SplineSpd(S_cieday,daylight_spd,S_im,1); %interpolate to match range and interval of Foster images
+spd_i = SplineSpd(S_cieday,daylight_spd,S_im,1); %interpolate to match range and interval of Foster images
 
 % figure, hold on, %check interpolation
 % scatter(SToWls(S_cieday),  spd)
@@ -204,9 +188,9 @@ if ~exist('level','var')
 end
 
 if level == 1
-    [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_LMSRI_c(:,1:Tn));
+    [P_coeff,~,~,~,P_explained] = pca(im_LMSRI_c(:,1:Tn));
 elseif level == 2    
-    [P_coeff,P_score,P_latent,P_tsquared,P_explained] = pca(im_lsri_c(:,1:Tn));
+    [P_coeff,~,~,~,P_explained] = pca(im_lsri_c(:,1:Tn));
 end
 
 end
