@@ -1,4 +1,4 @@
-function [P_coeff,P_explained] = BCRepro_main(im,D_CCT,level,Tn)
+function [im_LMSRI_c,im_lsri_c] = BCRepro_ComputeRetinalSignals(im,D_CCT)
 
 %% Data
 
@@ -11,14 +11,12 @@ elseif size(im,3) == 32 %2004 image #5
     S_im = [400,10,32];
 end
 
-
 % Illuminants
 
 load B_cieday % from PsychToolbox
 daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); 
 daylight_spd = daylight_spd/max(daylight_spd);
 %caution: these appear to be linearly upsampled from 10nm intervals
-
 
 % Observer(s)
 
@@ -140,14 +138,6 @@ if plt_correction
     hist(im_LMSRI_c,50)
     xlim([-(max(xlim)) max(xlim)]) %smmetrical x-axis
     legend({'L','M','S','R','I'})
-end
-
-%% PCA
-
-if level == 1
-    [P_coeff,~,~,~,P_explained] = pca(im_LMSRI_c(:,1:Tn));
-elseif level == 2    
-    [P_coeff,~,~,~,P_explained] = pca(im_lsri_c(:,1:Tn));
 end
 
 end

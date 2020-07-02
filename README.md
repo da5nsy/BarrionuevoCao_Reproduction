@@ -24,6 +24,7 @@ level = which level do you want to do this at?
 	(1 = LMSRI, 2 = lsri (with luminance removed before analysis)
 Tn = number of sensitivities (T in psychtoolbox terminology)
 	(3/4/5 = LMS/LMSR/LMSRI or 2/3/4 = ls/lsr/lsri)   
+```
 
 ## TO DO list
 - Non-linear CCT range
