@@ -1,50 +1,14 @@
 function [P_coeff,P_explained] = BCRepro_main(im,D_CCT,level,Tn)
 
-% Code to reproduce analysis from:
-%
-% P. A. Barrionuevo and D. Cao,
-% “Contributions of rhodopsin, cone opsins, and melanopsin to
-% postreceptoral pathways inferred from natural image statistics,”
-% Journal of the Optical Society of America A, vol. 31, no. 4,
-% p. A131, Apr. 2014.
+%% Data
 
-% Requires:
-%
-% - Psychtoolbox (could probably be done without, but it makes it easy)
-% Version: 3.0.14 - Flavor: beta - Corresponds to SVN Revision 8424
-% Uses basic functions, presumably will be compatible with other versions.
-%
-% - MATLAB Statistics and Machine Learning Toolbox
-
-% Variables:
-% im = image
-% D_CCT = Correlated colour temperature of the D series ill to be used
-% level = which level do you want to do this at? 
-%   (1 = LMSRI, 2 = lsri (with luminance removed before analysis)
-% Tn = number of sensitivities (T in psychtoolbox terminology)
-%   (3/4/5 = LMS/LMSR/LMSRI or 2/3/4 = ls/lsr/lsri)   
-
-% TO DO list
-% - Non-linear CCT range
-% - This whole operation would run faster if I split everything here but
-%   the last section (the pca) into a function, which would be called
-%   something like 'get_im_LMSRI_c', and which would only be called once
-%   per 'Tn', and then the pca could be done on the other side (in
-%   BCRepro_caller.m). This seems like definitely the right thing to do but
-%   there isn't the justification for me to do it right now, and so I shall
-%   put up with it being slow.
-
-
-%% Load
-
-% Imagery
-
-if size(im,3)==31 %2002 images
-    S_im=[410,10,31];
-elseif size(im,3)==33 %2004 images #1:4  
-    S_im=[400,10,33];
-elseif size(im,3)==32 %2004 image #5   
-    S_im=[400,10,32];
+% Set sampling interval metadata
+if size(im,3) == 31 %2002 images
+    S_im = [410,10,31]; 
+elseif size(im,3) == 33 %2004 images #1:4  
+    S_im = [400,10,33];
+elseif size(im,3) == 32 %2004 image #5   
+    S_im = [400,10,32];
 end
 
 
@@ -77,12 +41,12 @@ load T_melanopsin % from PsychToolbox
 % plot(SToWls(S_rods),T_rods)
 % plot(SToWls(S_melanopsin),T_melanopsin)
 
-% Pull them all together
-T_LMSRI=[(SplineCmf(S_cones_sp,T_cones_sp,S_im));...
+% Pull them all together (`SplineCmf` is from PsychToolbox)
+T_LMSRI = [(SplineCmf(S_cones_sp,T_cones_sp,S_im));...
     (SplineCmf(S_rods,T_rods,S_im));...
     (SplineCmf(S_melanopsin,T_melanopsin,S_im))];
 
-S_LMSRI=S_im;
+S_LMSRI = S_im;
 
 % figure, plot(SToWls(S_LMSRI),T_LMSRI)
 
@@ -131,34 +95,34 @@ plt_correction  = 0;
 if plt_process
     
     figure('units','normalized','outerposition',[0 0 1 1])
-    for i=1:5
+    for i = 1:5
         subplot(3,5,i)
         hist(im_LMSRI(:,i),500)
         xlim([0 20])
         ylim([0 25000])
-        if i==1
+        if i == 1
             ylabel('count')
         end
         xlabel('raw values')
     end
     
-    for i=1:5
+    for i = 1:5
         subplot(3,5,5+i)
         hist(log(im_LMSRI(:,i)),500)
         xlim([-3 3])
         ylim([0 6000])
-        if i==1
+        if i == 1
             ylabel('count')
         end
         xlabel('log')
     end
     
-    for i=1:5
+    for i = 1:5
         subplot(3,5,10+i)
         hist(log(im_LMSRI(:,i))-mean(log(im_LMSRI(:,i))),500)
         xlim([-3 3])
         ylim([0 6000])
-        if i==1
+        if i == 1
             ylabel('count')
         end
         xlabel('log -mean(log)')
@@ -179,13 +143,6 @@ if plt_correction
 end
 
 %% PCA
-
-if ~exist('level','var')
-    level = 1; %set level, unless we're inside a function    
-    disp('using default level: 1')
-    Tn = 5;
-    disp('using default number of receptors: 5')
-end
 
 if level == 1
     [P_coeff,~,~,~,P_explained] = pca(im_LMSRI_c(:,1:Tn));

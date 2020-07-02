@@ -47,7 +47,7 @@ if loadPreviouslyGeneratedResults
     load([cd,'\results.mat'])
 else
     tic
-    for imn = 1:length(ims)
+    for imn = 1%:length(ims)
         im = ims(imn).reflectances;
         for D_CCT = D_CCT_range
             for level = [1,2]
