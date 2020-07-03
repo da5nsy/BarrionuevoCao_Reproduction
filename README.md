@@ -27,11 +27,6 @@ Tn = number of sensitivities (T in psychtoolbox terminology)
 ```
 
 ## TO DO list
-- Non-linear CCT range
-- This whole operation would run faster if I split everything here but
-the last section (the pca) into a function, which would be called
-something like 'get_im_LMSRI_c', and which would only be called once
-per 'Tn', and then the pca could be done on the other side (in
-BCRepro_caller.m). This seems like definitely the right thing to do but
-there isn't the justification for me to do it right now, and so I shall
-put up with it being slow.
+- Get a better estimate of CCT range
+- Reproduce the data tables 
+

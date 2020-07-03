@@ -1,4 +1,4 @@
-function [im_LMSRI_c,im_lsri_c] = BCRepro_ComputeRetinalSignals(im,D_CCT)
+function [im_LMSRI_c,im_lsri_c] = BCRepro_ComputeRetinalSignals(im,daylight_spd,S_cieday)
 
 %% Data
 
@@ -11,20 +11,13 @@ elseif size(im,3) == 32 %2004 image #5
     S_im = [400,10,32];
 end
 
-% Illuminants
-
-load B_cieday % from PsychToolbox
-daylight_spd = GenerateCIEDay(D_CCT,[B_cieday]); 
-daylight_spd = daylight_spd/max(daylight_spd);
-%caution: these appear to be linearly upsampled from 10nm intervals
-
-% Observer(s)
+% Observer
 
 % Smith-Pokorny
-load T_cones_sp % from PsychToolbox
+load T_cones_sp T_cones_sp S_cones_sp % from PsychToolbox
 
 % Rods
-load T_rods % from PsychToolbox
+load T_rods T_rods S_rods % from PsychToolbox
 
 % Melanopsin
 % Psychtoolbox's melanopsin function is neither the same as the Lucas+ 2014
@@ -32,7 +25,7 @@ load T_rods % from PsychToolbox
 % peak at 484. (PsychT = 488nm, Lucas = 490nm)
 % And so for simplicity, for now, I'll use psychtoolbox, but remember that
 % if the results come out slightly diff, this could be a contributor.
-load T_melanopsin % from PsychToolbox
+load T_melanopsin T_melanopsin S_melanopsin % from PsychToolbox
 
 % figure, hold on
 % plot(SToWls(S_cones_sp),T_cones_sp)
@@ -54,17 +47,27 @@ S_LMSRI = S_im;
 % I'll put this here just in case I'm wrong so that it's here to come back
 % to if I need to.
 
+% "The spectral-sensitivity functions of the photopigments
+% were normalized [Fig. 1(b)] such that for an equal-energyspectrum
+% light at 1 Td, the L-, M-, and S-cone opsins, rhodopsin,
+% and melanopsin excitations would be 0.667 (L), 0.333 (M), 1 (S),
+% 1 (R), and 1 (I) Td, respectively, (so L + M = 1Td)."
+
 %% Convert to radiance
 
 spd_i = SplineSpd(S_cieday,daylight_spd,S_im,1); %interpolate to match range and interval of Foster images
 
 % figure, hold on, %check interpolation
-% scatter(SToWls(S_cieday),  spd)
-% scatter(SToWls(S_im),      spd_i);
+% scatter(SToWls(S_cieday), daylight_spd, 'DisplayName', 'Original Data')
+% scatter(SToWls(S_im), spd_i, 'DisplayName', 'Interpolated Data');
+% legend('Location', 'best')
 
+im_r = zeros(size(im));
 for i = 1:size(im,3)
-    im_r(:,:,i) = im(:,:,i)*spd_i(i); %image radiance
+    im_r(:,:,i) = im(:,:,i) * spd_i(i); %image radiance
 end
+
+%im_r = im .* permute(repmat(spd_i,1,748,820),[2,3,1]); % slightly quicker, but less readable
 
 % for i=1:31
 %     imshow(im_r(:,:,i))
@@ -130,8 +133,9 @@ if plt_process
     
 end
 
-im_LMSRI_c = log(im_LMSRI)-mean(log(im_LMSRI)); %'c' = 'corrected'
-im_lsri_c  = log(im_lsri)-mean(log(im_lsri));   %'c' = 'corrected'
+% Equation 1
+im_LMSRI_c = log(im_LMSRI) - mean(log(im_LMSRI)); %'c' = 'corrected'
+im_lsri_c  = log(im_lsri) - mean(log(im_lsri));   %'c' = 'corrected'
 
 if plt_correction
     figure,
