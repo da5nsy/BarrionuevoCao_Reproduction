@@ -8,12 +8,11 @@ ims = BCRepro_LoadImages; % Loads images, and prints a summary of the memory bei
 
 %% Load Illuminants
 
-% 21 D ills 3600:25000, no mention of interval so assuming the interval
-% which gives 21, though an interval of 1020 is weird, and I personally
-% would think that a non-linear interval would make more sense.
-% (paper shows [3940,5205,6677,24770] on figures)
+% 21 D ills, from:
+% Linhares, J.M.M. and Nascimento, S.M.C., 2012. A chromatic diversity index based on complex scenes. Journal of the Optical Society of America A, 29(2), p.A174.
+% for unclear reasons
 
-D_CCT_range = 3600:1020:25000; 
+D_CCT_range = 3600:1190.3:25000; 
 
 load B_cieday B_cieday S_cieday % from PsychToolbox
 
