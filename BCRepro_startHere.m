@@ -2,6 +2,9 @@ clc, clear, close all
 
 % Currently takes ~15mins to run full set
 
+loadPreviouslyGeneratedResults = 1;
+plt_figuresForIndividualImages = 0; % if not selected only plots data for means (as in original paper)
+
 %% Load Images
 
 ims = BCRepro_LoadImages; % Loads images, and prints a summary of the memory being used
@@ -24,8 +27,6 @@ for i = 1:length(D_CCT_range)
 end
 
 %% PCA
-
-loadPreviouslyGeneratedResults = 0;
 
 res = struct(); %'res', short for 'results'
 
@@ -68,10 +69,37 @@ else
     save('results.mat','res','time_taken')
 end
 
+%% Results extraction - reproduce the tables
+
+% Table 1
+
+table_inds = [1,3; 2,2; 1,4; 2,3; 1,5; 2,4;];
+
+for i = 1:size(table_inds,1)
+    level = table_inds(i,1);
+    Tn    = table_inds(i,2); 
+    res_t = res([res.level] == level & [res.Tn] == Tn); % results temp. Sub-select data where the above conditions are met
+    clear res_t2
+    for j = 1:length(res_t)
+        res_t2(:,:,j) = res_t(j).P_coeff;
+    end
+    tables{i} = [mean(res_t2,3)',mean([res_t.P_explained],2)];
+    disp(table(tables{i}))
+end
+
+
+
 %% Visualisation
 
-for imn=1:length(ims)
-    [f2,f3] = BCRepro_figs(res, D_CCT_range,imn);
-    saveas(f2,['figures/f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])    
-    saveas(f3,['figures/f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+% WIP!
+% [f2,f3] = BCRepro_figs(res_mean, D_CCT_range,1); %imn == 1? Or do we want to handle this in a different way?
+% saveas(f2,['figures/f2_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+% saveas(f3,['figures/f3_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+
+if plt_figuresForIndividualImages
+    for imn=1:length(ims)
+        [f2,f3] = BCRepro_figs(res, D_CCT_range,imn);
+        saveas(f2,['figures/individualImages/f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+        saveas(f3,['figures/individualImages/f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+    end
 end
