@@ -27,6 +27,6 @@ Tn = number of sensitivities (T in psychtoolbox terminology)
 ```
 
 ## TO DO list
-- Get a better estimate of CCT range
-- Reproduce the data tables 
+- Re-produce ANOVA
+- Fix luminance / receptor scaling
 

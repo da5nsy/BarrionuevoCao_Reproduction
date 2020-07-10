@@ -3,12 +3,14 @@ function [im_LMSRI_c,im_lsri_c] = BCRepro_ComputeRetinalSignals(im,daylight_spd,
 %% Data
 
 % Set sampling interval metadata
-if size(im,3) == 31 %2002 images
+if size(im,ndims(im)) == 31 %2002 images
     S_im = [410,10,31]; 
-elseif size(im,3) == 33 %2004 images #1:4  
+elseif size(im,ndims(im)) == 33 %2004 images #1:4  
     S_im = [400,10,33];
-elseif size(im,3) == 32 %2004 image #5   
+elseif size(im,ndims(im)) == 32 %2004 image #5   
     S_im = [400,10,32];
+else
+    error('S_im error')
 end
 
 % Observer
@@ -43,15 +45,15 @@ S_LMSRI = S_im;
 
 %% Funky normalisation in original paper
 
-% I don't think this section is required due to a later normalisation, but
-% I'll put this here just in case I'm wrong so that it's here to come back
-% to if I need to.
+% I need to impliment this:
 
 % "The spectral-sensitivity functions of the photopigments
 % were normalized [Fig. 1(b)] such that for an equal-energyspectrum
 % light at 1 Td, the L-, M-, and S-cone opsins, rhodopsin,
 % and melanopsin excitations would be 0.667 (L), 0.333 (M), 1 (S),
 % 1 (R), and 1 (I) Td, respectively, (so L + M = 1Td)."
+
+% But only because of the way it means luminance is computed.
 
 %% Convert to radiance
 
@@ -63,8 +65,8 @@ spd_i = SplineSpd(S_cieday,daylight_spd,S_im,1); %interpolate to match range and
 % legend('Location', 'best')
 
 im_r = zeros(size(im));
-for i = 1:size(im,3)
-    im_r(:,:,i) = im(:,:,i) * spd_i(i); %image radiance
+for i = 1:size(im,2)
+    im_r(:,i) = im(:,i) * spd_i(i); %image radiance
 end
 
 %im_r = im .* permute(repmat(spd_i,1,748,820),[2,3,1]); % slightly quicker, but less readable
@@ -79,14 +81,8 @@ end
 
 % https://personalpages.manchester.ac.uk/staff/david.foster/Tutorial_HSI2RGB/Tutorial_HSI2RGB.html
 
-[r,c,w] = size(im_r);
-im_rr = reshape(im_r, r*c, w); %Image radiance reshaped
-
-im_LMSRI = (T_LMSRI*im_rr')';                                 %First level
-im_lsri=im_LMSRI(:,[1,3,4,5])./(im_LMSRI(:,1)+im_LMSRI(:,2)); %Second level
-
-% If one wanted it reshaped back to the shape of the actual image
-% im_LMSRI_shape = reshape(im_LMSRI, r, c, 5); 
+im_LMSRI = (T_LMSRI*im_r')';                                         %First level
+im_lsri  = im_LMSRI(:,[1,3,4,5]) ./ (im_LMSRI(:,1) + im_LMSRI(:,2)); %Second level 
 
 %% Correction (eq 1)
 
@@ -134,8 +130,26 @@ if plt_process
 end
 
 % Equation 1
-im_LMSRI_c = log(im_LMSRI) - mean(log(im_LMSRI)); %'c' = 'corrected'
-im_lsri_c  = log(im_lsri) - mean(log(im_lsri));   %'c' = 'corrected'
+
+log_im_LMSRI = log(im_LMSRI); % doing this bit first because in the next section we need to exclude infinite entries (which happen when you get log(0))
+log_im_lsri  = log(im_lsri);
+
+if any(any(~isfinite(log_im_LMSRI)))
+log_im_LMSRI(~isfinite(log_im_LMSRI)) = min(log_im_LMSRI(isfinite(log_im_LMSRI))); % replace infinite values with minimum finite values
+warning('Replacing values of ''-inf'' in log_im_LMSRI with the smallest finite value')
+end
+
+if any(any(~isfinite(log_im_lsri)))
+log_im_lsri(~isfinite(log_im_lsri)) = min(log_im_lsri(isfinite(log_im_lsri))); % replace infinite values with minimum finite values
+warning('Replacing values of ''-inf'' in log_im_lsri with the smallest finite value')
+end
+
+
+% im_LMSRI_c = log(im_LMSRI) - mean(log_im_LMSRI(isfinite(log_im_LMSRI))); %'c' = 'corrected'
+% im_lsri_c  = log(im_lsri)  - mean(log_im_lsri(isfinite(log_im_lsri)));   %'c' = 'corrected'
+
+im_LMSRI_c = log_im_LMSRI - mean(log_im_LMSRI);  %'c' = 'corrected'
+im_lsri_c  = log_im_lsri  - mean(log_im_lsri);   %'c' = 'corrected'
 
 if plt_correction
     figure,
