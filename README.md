@@ -28,5 +28,4 @@ Tn = number of sensitivities (T in psychtoolbox terminology)
 
 ## TO DO list
 - Re-produce ANOVA
-- Fix luminance / receptor scaling
 
