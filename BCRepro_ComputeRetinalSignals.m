@@ -43,9 +43,9 @@ S_LMSRI = S_im;
 
 % figure, plot(SToWls(S_LMSRI),T_LMSRI)
 
-%% Funky normalisation in original paper
+%% Normalisation
 
-% I need to impliment this:
+% This code impliments this:
 
 % "The spectral-sensitivity functions of the photopigments
 % were normalized [Fig. 1(b)] such that for an equal-energyspectrum
@@ -53,7 +53,23 @@ S_LMSRI = S_im;
 % and melanopsin excitations would be 0.667 (L), 0.333 (M), 1 (S),
 % 1 (R), and 1 (I) Td, respectively, (so L + M = 1Td)."
 
-% But only because of the way it means luminance is computed.
+% I think that the primary importance is so that luminance is calculated
+% correctly. [ref?] 
+% [Probably: Smith, V.C., Pokorny, J., 1975. Spectral sensitivity of the foveal cone photopigments between 400 and 500 nm. Vision Research 15, 161–171. https://doi.org/10.1016/0042-6989(75)90203-5]
+
+% sum(T_LMSRI')
+% figure, plot(T_LMSRI')
+
+T_LMSRI = T_LMSRI./sum(T_LMSRI,2); % Normalise so that they are equal
+
+% sum(T_LMSRI')
+% figure, plot(T_LMSRI')
+
+T_LMSRI(1,:) = T_LMSRI(1,:)*(2/3); % Knock L down to 2/3
+T_LMSRI(2,:) = T_LMSRI(2,:)*(1/3); % Knock M down to 1/3
+
+% sum(T_LMSRI')
+% figure, plot(T_LMSRI')
 
 %% Convert to radiance
 
