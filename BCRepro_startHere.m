@@ -95,6 +95,8 @@ for i = 1:size(table_inds,1)
     end
     tables{i} = [mean(res_t2,3)',mean([res_t.P_explained],2)];
     %disp(table(tables{i}))
+    
+    writematrix(round(tables{i},2),['tables/',num2str(i),'.csv'])    
 end
 
 % Concatenated image
@@ -108,6 +110,8 @@ for i = 1:size(table_inds,1)
     end
     tablesc{i} = [mean(res_t2,3)',mean([res_t.P_explained],2)]; %tables for Concatenated image
     %disp(table(tablesc{i}))
+    
+    writematrix(round(tables{i},2),['tables/',num2str(i),'c.csv'])  
 end
 
 C = cellfun(@minus,tables,tablesc,'Un',0); % test difference between two methods
