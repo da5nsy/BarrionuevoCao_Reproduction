@@ -2,7 +2,7 @@ clc, clear, close all
 
 % Currently takes ~15mins to run full set
 
-loadPreviouslyGeneratedResults = 1;
+loadPreviouslyGeneratedResults = 0;
 plt_figuresForIndividualImages = 0; % if not selected only plots data for means (as in original paper)
 
 %% Load Images
@@ -122,15 +122,15 @@ C = cellfun(@minus,tables,tablesc,'Un',0); % test difference between two methods
 if plt_figuresForIndividualImages
     for imn = 1:length(ims)
         [f2,f3] = BCRepro_figs(res, D_CCT_range,imn);
-        saveas(f2,['figures/individualImages/f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
-        saveas(f3,['figures/individualImages/f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+        saveas(f2,['figures\individualImages\f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+        saveas(f3,['figures\individualImages\f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
     end
 end
 
 % For the data computed from the concatendated image
-[f2,f3] = BCRepro_figs(res, D_CCT_range,length(ims)+1); % 'length(ims)+1' is where the results
-saveas(f2,['figures/f2_',datestr(now,'yymmddHHMMSS'),'.tiff'])
-saveas(f3,['figures/f3_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+[f2,f3] = BCRepro_figs(res, D_CCT_range, -1); 
+saveas(f2,['figures\f2_',datestr(now,'yymmddHHMMSS'),'conc.tiff'])
+saveas(f3,['figures\f3_',datestr(now,'yymmddHHMMSS'),'conc.tiff'])
 
 % For the average results
 
