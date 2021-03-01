@@ -4,7 +4,7 @@ clc, clear, close all
 
 isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0; % check whether we're in Octave (or MATLAB)
 
-loadPreviouslyGeneratedResults = 1;
+loadPreviouslyGeneratedResults = 0;
 plt_figuresForIndividualImages = 1; % if not selected only plots data for means (as in original paper)
 
 %% Load Images
@@ -142,16 +142,19 @@ C = cellfun(@minus,tables,tablesc,'Un',0); % test difference between two methods
 if plt_figuresForIndividualImages
     for imn = 1:length(ims)
         [f2,f3] = BCRepro_figs(res, D_CCT_range,imn);
-        saveas(f2,['figures',filesep,'individualImages',filesep,'f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
-        saveas(f3,['figures',filesep,'individualImages',filesep,'f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+        f2.Renderer = 'painters'; %for svgs/pdf
+        f3.Renderer = 'painters'; %for svgs/pdf
+        saveas(f2,['figures',filesep,'individualImages',filesep,'f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.pdf'])
+        saveas(f3,['figures',filesep,'individualImages',filesep,'f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.pdf'])
     end
 end
 
 % For the data computed from the concatendated image
 [f2,f3] = BCRepro_figs(res, D_CCT_range, -1);
 f2.Renderer = 'painters'; %for svgs/pdf
+f3.Renderer = 'painters'; %for svgs/pdf
 saveas(f2,['figures',filesep,'f2_',datestr(now,'yymmddHHMMSS'),'conc.pdf'])
-saveas(f3,['figures',filesep,'f3_',datestr(now,'yymmddHHMMSS'),'conc.tiff'])
+saveas(f3,['figures',filesep,'f3_',datestr(now,'yymmddHHMMSS'),'conc.pdf'])
 
 % For the average results
 
