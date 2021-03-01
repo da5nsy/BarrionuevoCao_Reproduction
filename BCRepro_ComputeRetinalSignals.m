@@ -16,10 +16,10 @@ end
 % Observer
 
 % Smith-Pokorny
-load T_cones_sp T_cones_sp S_cones_sp % from PsychToolbox
+load([PsychtoolboxRoot, filesep, 'PsychColorimetricData', filesep, 'PsychColorimetricMatFiles', filesep, 'T_cones_sp.mat']) % from PsychToolbox
 
 % Rods
-load T_rods T_rods S_rods % from PsychToolbox
+load([PsychtoolboxRoot, filesep, 'PsychColorimetricData', filesep, 'PsychColorimetricMatFiles', filesep, 'T_rods.mat']) % from PsychToolbox
 
 % Melanopsin
 % Psychtoolbox's melanopsin function is neither the same as the Lucas+ 2014
@@ -27,7 +27,7 @@ load T_rods T_rods S_rods % from PsychToolbox
 % peak at 484. (PsychT = 488nm, Lucas = 490nm)
 % And so for simplicity, for now, I'll use psychtoolbox, but remember that
 % if the results come out slightly diff, this could be a contributor.
-load T_melanopsin T_melanopsin S_melanopsin % from PsychToolbox
+load([PsychtoolboxRoot, filesep, 'PsychColorimetricData', filesep, 'PsychColorimetricMatFiles', filesep, 'T_melanopsin.mat']) % from PsychToolbox
 
 % figure, hold on
 % plot(SToWls(S_cones_sp),T_cones_sp)

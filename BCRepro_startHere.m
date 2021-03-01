@@ -2,12 +2,14 @@ clc, clear, close all
 
 % Currently takes ~15mins to run full set
 
-loadPreviouslyGeneratedResults = 0;
-plt_figuresForIndividualImages = 0; % if not selected only plots data for means (as in original paper)
+isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0; % check whether we're in Octave (or MATLAB)
+
+loadPreviouslyGeneratedResults = 1;
+plt_figuresForIndividualImages = 1; % if not selected only plots data for means (as in original paper)
 
 %% Load Images
 
-ims = BCRepro_LoadImages; % Loads images, and prints a summary of the memory being used
+ims = BCRepro_LoadImages; % Loads images
 
 %% Load Illuminants
 
@@ -17,7 +19,7 @@ ims = BCRepro_LoadImages; % Loads images, and prints a summary of the memory bei
 
 D_CCT_range = 3600:1190.3:25000;
 
-load B_cieday B_cieday S_cieday % from PsychToolbox
+load([PsychtoolboxRoot, filesep, 'PsychColorimetricData', filesep, 'PsychColorimetricMatFiles', filesep, 'B_cieday.mat']) % from PsychToolbox
 
 daylight_spd = zeros(S_cieday(3),length(D_CCT_range));
 for i = 1:length(D_CCT_range)
@@ -32,7 +34,7 @@ res = struct(); % Results
 im_c = cell(size(ims));
 
 if loadPreviouslyGeneratedResults
-    load([cd,'\results.mat'])
+    load([cd,filesep,'results.mat'])
 else
     tic
     for imn = [1:length(ims),-1] % -1 is the flag for the concatenated image
@@ -53,15 +55,25 @@ else
             for level = [1,2]
                 if level == 1
                     for Tn = [3,4,5] %LMS,LMSR,LMSRI
-                        [res(end+1).P_coeff,~,~,~,res(end+1).P_explained] = pca(im_LMSRI_c(:,1:Tn));
+                        %maths from: https://lists.gnu.org/archive/html/help-octave/2004-05/msg00066.html
+                        C = cov(im_LMSRI_c(:,1:Tn));
+                        [res(end+1).P_coeff,D,pc] = svd(C);
+                        sv = diag(D);
+                        res(end).P_explained = 100*sv/sum(sv);
+                        %[res(end+1).P_coeff,~,~,~,res(end+1).P_explained] = pca(im_LMSRI_c(:,1:Tn)); % an alternative method using the pca function rather than the svd method above (doesn't work in Octave because 'pca' is not yet implemented, and gives slightly different results for reasons which are currently unknown to me).
                         res(end).imn    = imn;
                         res(end).CCT    = D_CCT_range(D_CCTi);
                         res(end).level  = level;
                         res(end).Tn     = Tn;
                     end
                 elseif level == 2
-                    for Tn = [2,3,4] %ls,lsr,lsri
-                        [res(end+1).P_coeff,~,~,~,res(end+1).P_explained] = pca(im_lsri_c(:,1:Tn));
+                    for Tn = [2,3,4] %ls,lsr,lsri                        
+                        %maths from: https://lists.gnu.org/archive/html/help-octave/2004-05/msg00066.html
+                        C = cov(im_lsri_c(:,1:Tn));
+                        [res(end+1).P_coeff,D,pc] = svd(C); 
+                        sv = diag(D);
+                        res(end).P_explained = 100*sv/sum(sv);                       
+                        %[res(end+1).P_coeff,~,~,~,res(end+1).P_explained] = pca(im_lsri_c(:,1:Tn)); % an alternative method using the pca function rather than the svd method above (doesn't work in Octave because 'pca' is not yet implemented, and gives slightly different results for reasons which are currently unknown to me).
                         res(end).imn    = imn;
                         res(end).CCT    = D_CCT_range(D_CCTi);
                         res(end).level  = level;
@@ -94,9 +106,13 @@ for i = 1:size(table_inds,1)
         res_t2(:,:,j) = res_t(j).P_coeff;
     end
     tables{i} = [mean(res_t2,3)',mean([res_t.P_explained],2)];
-    %disp(table(tables{i}))
+    %disp(table(tables{i})) %Octave does not have `table` implemented
     
-    writematrix(round(tables{i},2),['tables/',num2str(i),'.csv'])    
+    if ~isOctave
+        writematrix(round(tables{i},2),['tables',filesep,num2str(i),'.csv'])
+    else
+        csvwrite(['tables',filesep,num2str(i),'.csv'],round(tables{i} .* 100) ./ 100) %`writematrix` is not implemented in Octave, and `round` does not have a precision input parameter, but `csvwrite` is not recommended in MATLAB starting in R2019a
+    end
 end
 
 % Concatenated image
@@ -109,9 +125,13 @@ for i = 1:size(table_inds,1)
         res_t2(:,:,j) = res_t(j).P_coeff;
     end
     tablesc{i} = [mean(res_t2,3)',mean([res_t.P_explained],2)]; %tables for Concatenated image
-    %disp(table(tablesc{i}))
+    %disp(table(tablesc{i})) %Octave does not have `table` implemented
     
-    writematrix(round(tables{i},2),['tables/',num2str(i),'c.csv'])  
+    if ~isOctave
+        writematrix(round(tables{i},2),['tables',filesep,num2str(i),'c.csv'])
+    else
+        csvwrite(['tables',filesep,num2str(i),'c.csv'],round(tables{i} .* 100) ./ 100) %`writematrix` is not implemented in Octave, and `round` does not have a precision input parameter, but `csvwrite` is not recommended in MATLAB starting in R2019a
+    end
 end
 
 C = cellfun(@minus,tables,tablesc,'Un',0); % test difference between two methods
@@ -122,15 +142,16 @@ C = cellfun(@minus,tables,tablesc,'Un',0); % test difference between two methods
 if plt_figuresForIndividualImages
     for imn = 1:length(ims)
         [f2,f3] = BCRepro_figs(res, D_CCT_range,imn);
-        saveas(f2,['figures\individualImages\f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
-        saveas(f3,['figures\individualImages\f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+        saveas(f2,['figures',filesep,'individualImages',filesep,'f2_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
+        saveas(f3,['figures',filesep,'individualImages',filesep,'f3_im',num2str(imn),'_',datestr(now,'yymmddHHMMSS'),'.tiff'])
     end
 end
 
 % For the data computed from the concatendated image
-[f2,f3] = BCRepro_figs(res, D_CCT_range, -1); 
-saveas(f2,['figures\f2_',datestr(now,'yymmddHHMMSS'),'conc.tiff'])
-saveas(f3,['figures\f3_',datestr(now,'yymmddHHMMSS'),'conc.tiff'])
+[f2,f3] = BCRepro_figs(res, D_CCT_range, -1);
+f2.Renderer = 'painters'; %for svgs/pdf
+saveas(f2,['figures',filesep,'f2_',datestr(now,'yymmddHHMMSS'),'conc.pdf'])
+saveas(f3,['figures',filesep,'f3_',datestr(now,'yymmddHHMMSS'),'conc.tiff'])
 
 % For the average results
 
