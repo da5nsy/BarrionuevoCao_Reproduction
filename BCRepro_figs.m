@@ -36,9 +36,9 @@ mfc = {{'k','k','k',[1,1,1]},...
 
 for fig = [2,3] %figures 2 and 3
     if fig == 2        
-        f2 = figure('units','normalized','outerposition',[0 0 0.4 1]); hold on
+        f2 = figure('units','pixels','outerposition',[0 0 500 700]); hold on
     elseif fig == 3        
-        f3 = figure('units','normalized','outerposition',[0 0 0.4 1.2]); hold on
+        f3 = figure('units','pixels','outerposition',[0 0 500 800]); hold on
     end
     for col = [1,2]
         panels = 5-col+fig-2; % [4,3,5,4] % number of panels in each column

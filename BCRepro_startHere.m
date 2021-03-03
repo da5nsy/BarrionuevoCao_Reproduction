@@ -4,8 +4,8 @@ clc, clear, close all
 
 isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0; % check whether we're in Octave (or MATLAB)
 
-loadPreviouslyGeneratedResults = 0;
-plt_figuresForIndividualImages = 1; % if not selected only plots data for means (as in original paper)
+loadPreviouslyGeneratedResults = 1;
+plt_figuresForIndividualImages = 0; % if not selected only plots data for means (as in original paper)
 
 %% Load Images
 
